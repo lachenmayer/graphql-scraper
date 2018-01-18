@@ -1,0 +1,23 @@
+{
+  "name": "graphql-scraper",
+  "version": "1.0.0",
+  "description": "scrape websites using graphql",
+  "main": "index.js",
+  "author": "harry lachenmayer <harrylachenmayer@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "tsc -w",
+    "test": "tsc; ava build/__tests__/"
+  },
+  "devDependencies": {
+    "@types/graphql": "^0.12.0",
+    "@types/jsdom": "^11.0.4",
+    "ava": "^0.24.0",
+    "typescript": "^2.6.2"
+  },
+  "dependencies": {
+    "graphql": "^0.12.3",
+    "isomorphic-fetch": "^2.2.1",
+    "jsdom": "^11.5.1"
+  }
+}

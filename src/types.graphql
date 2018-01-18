@@ -1,0 +1,42 @@
+type Query {
+  page(url: String, html: String): Document
+}
+
+# A DOM Node
+interface Node {
+  # The HTML representation of the subnodes
+  content(selector: String): String
+  # The HTML representation of the selected DOM node
+  html(selector: String): String
+  # The text content of the selected DOM node
+  text(selector: String): String
+  # The tag name of the selected DOM node
+  tag(selector: String): String
+  # The attribute with the given name of the selected DOM node
+  attr(selector: String, name: String!): String
+  # Returns true if the DOM matches the selector
+  has(selector: String!): Boolean
+
+  query(selector: String!): [Element]
+  children(selector: String): [Element]
+  parents(selector: String): [Element]
+  parent: Element
+  siblings(selector: String): [Element]
+  # The immediately following sibling
+  next(selector: String): Element
+  # All following siblings
+  nextAll(selector: String): [Element]
+  # The immediately previous sibling
+  previous(selector: String): Element
+  # All previous siblings
+  previousAll(selector: String): [Element]
+}
+
+type Document implements Node {
+  title: String
+}
+
+type Element implements Node {
+  # If the element is a link, visit the page linked to in the href attribute.
+  visit: Document
+}
