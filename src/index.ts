@@ -1,4 +1,4 @@
-import { GraphQLString } from 'graphql/type/scalars'
+import { GraphQLString, GraphQLBoolean } from 'graphql/type/scalars'
 import {
   GraphQLObjectType,
   GraphQLNonNull,
@@ -72,18 +72,104 @@ function sharedFields(): GraphQLFieldConfigMap<{ self: Element }, any> {
         return attribute.value
       },
     },
+    has: {
+      type: GraphQLBoolean,
+      args: {
+        selector: { type: new GraphQLNonNull(GraphQLString) },
+      },
+      resolve({ self }, { selector }) {
+        return !!self.querySelector(selector)
+      },
+    },
     query: {
+      type: ElementType,
+      args: {
+        selector: { type: new GraphQLNonNull(GraphQLString) },
+      },
+      resolve({ self }, { selector }) {
+        const newSelf = self.querySelector(selector)
+        return newSelf ? { self: newSelf } : null
+      },
+    },
+    queryAll: {
       type: new GraphQLList(ElementType),
       args: {
         selector: { type: new GraphQLNonNull(GraphQLString) },
       },
       resolve({ self }, { selector }) {
-        return Array.from(self.querySelectorAll(selector)).map(self => ({
-          self,
-        }))
+        return toElements(self.querySelectorAll(selector))
+      },
+    },
+    children: {
+      type: new GraphQLList(ElementType),
+      resolve({ self }) {
+        return toElements(self.children)
+      },
+    },
+    parent: {
+      type: ElementType,
+      resolve({ self }) {
+        return self.parentElement ? { self: self.parentElement } : null
+      },
+    },
+    siblings: {
+      type: new GraphQLList(ElementType),
+      resolve({ self }) {
+        const parent = self.parentElement
+        if (parent == null) return [{ self }]
+        return toElements(parent.children)
+      },
+    },
+    next: {
+      type: ElementType,
+      resolve({ self }) {
+        return self.nextSibling ? { self: self.nextSibling } : null
+      },
+    },
+    nextAll: {
+      type: new GraphQLList(ElementType),
+      resolve({ self }, { selector }) {
+        const siblings = []
+        for (
+          let next = self.nextSibling;
+          next != null;
+          next = next.nextSibling
+        ) {
+          siblings.push({ self: next })
+        }
+        return siblings
+      },
+    },
+    previous: {
+      type: ElementType,
+      resolve({ self }) {
+        return self.previousSibling ? { self: self.previousSibling } : null
+      },
+    },
+    previousAll: {
+      type: new GraphQLList(ElementType),
+      resolve({ self }, { selector }) {
+        const siblings = []
+        for (
+          let previous = self.previousSibling;
+          previous != null;
+          previous = previous.previousSibling
+        ) {
+          siblings.push({ self: previous })
+        }
+        siblings.reverse()
+        return siblings
       },
     },
   }
+}
+
+function toElements(
+  nodeListOrCollection: any
+): Array<{ self: any /* Element */ }> {
+  return Array.from(nodeListOrCollection).map(self => ({
+    self,
+  }))
 }
 
 const NodeType = new GraphQLInterfaceType(<GraphQLInterfaceTypeConfig<

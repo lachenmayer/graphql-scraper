@@ -18,10 +18,9 @@ interface Node {
   has(selector: String!): Boolean
 
   query(selector: String!): [Element]
-  children(selector: String): [Element]
-  parents(selector: String): [Element]
+  children: [Element]
   parent: Element
-  siblings(selector: String): [Element]
+  siblings: [Element]
   # The immediately following sibling
   next(selector: String): Element
   # All following siblings

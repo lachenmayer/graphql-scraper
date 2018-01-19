@@ -175,19 +175,224 @@ test('attr with selector', async t => {
   t.is(response.data && response.data.page.attr, 'selectme')
 })
 
+test('has', async t => {
+  const html = `<html><head><title>some title</title></head><body><div class=\\"one\\"><strong>one</strong></div><div class=\\"two\\"><strong>two</strong></div></body></html>`
+  const query = `{
+    page(source: "${html}") {
+      firstDiv: query(selector: "div") {
+        isStrong: has(selector: "strong")
+      }
+    }
+  }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.true(response.data && response.data.page.firstDiv.isStrong)
+})
+
+test('has not', async t => {
+  const html = `<html><head><title>some title</title></head><body><div class=\\"one\\"><strong>one</strong></div><div class=\\"two\\"><strong>two</strong></div></body></html>`
+  const query = `{
+    page(source: "${html}") {
+      firstDiv: query(selector: "div") {
+        isWeak: has(selector: "weak")
+      }
+    }
+  }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.true(response.data && !response.data.page.firstDiv.isWeak)
+})
+
 test('query', async t => {
   const html = `<html><head><title>some title</title></head><body><div class=\\"one\\"><strong>one</strong></div><div class=\\"two\\"><strong>two</strong></div></body></html>`
   const query = `{
     page(source: "${html}") {
-      query(selector: "div") {
+      firstDiv: query(selector: "div") {
         text
       }
     }
   }`
   const response = await graphql(schema, query)
   t.false('errors' in response)
-  t.deepEqual(response.data && response.data.page.query, [
+  t.deepEqual(response.data && response.data.page.firstDiv, { text: 'one' })
+})
+
+test('queryAll', async t => {
+  const html = `<html><head><title>some title</title></head><body><div class=\\"one\\"><strong>one</strong></div><div class=\\"two\\"><strong>two</strong></div></body></html>`
+  const query = `{
+    page(source: "${html}") {
+      divs: queryAll(selector: "div") {
+        text
+      }
+    }
+  }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.deepEqual(response.data && response.data.page.divs, [
     { text: 'one' },
     { text: 'two' },
+  ])
+})
+
+test('children', async t => {
+  const html = `<html><head><title>some title</title></head><body><div class=\\"one\\"><strong>one</strong><strong>two</strong></div><div class=\\"two\\"><strong>two</strong><strong>three</strong></div></body></html>`
+  const query = `{
+    page(source: "${html}") {
+      kids: queryAll(selector: "div") {
+        children {
+          text
+        }
+      }
+    }
+  }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.deepEqual(response.data && response.data.page.kids, [
+    {
+      children: [{ text: 'one' }, { text: 'two' }],
+    },
+    {
+      children: [{ text: 'two' }, { text: 'three' }],
+    },
+  ])
+})
+
+test('parent', async t => {
+  const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong></div></body></html>`
+  const query = `{
+    page(source: "${html}") {
+      query(selector: "strong") {
+        parent {
+          attr(name: "class")
+        }
+      }
+    }
+  }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.is(response.data && response.data.page.query.parent.attr, 'selectme')
+})
+
+test('siblings', async t => {
+  const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong><p>boom</p><span>bap</span></div></body></html>`
+  const query = `{
+    page(source: "${html}") {
+      query(selector: "strong") {
+        siblings {
+          text
+        }
+      }
+    }
+  }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.deepEqual(response.data && response.data.page.query.siblings, [
+    { text: 'bad' },
+    { text: 'boom' },
+    { text: 'bap' },
+  ])
+})
+
+test('siblings of root is only html', async t => {
+  const html = `<!doctype html><html><head></head><body>nothing to see here</body></html>`
+  const query = `{
+    page(source: "${html}") {
+      siblings {
+        tag
+      }
+    }
+  }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.deepEqual(response.data && response.data.page.siblings, [{ tag: 'HTML' }])
+})
+
+test('next', async t => {
+  const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong><p>boom</p><span>bap</span></div></body></html>`
+  const query = `{
+    page(source: "${html}") {
+      query(selector: "strong") {
+        next {
+          text
+        }
+      }
+    }
+  }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.is(response.data && response.data.page.query.next.text, 'boom')
+})
+
+test('next - bare text', async t => {
+  const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong>bare text<span>bap</span></div></body></html>`
+  const query = `{
+    page(source: "${html}") {
+      query(selector: "strong") {
+        next {
+          tag
+          text
+        }
+      }
+    }
+  }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.is(response.data && response.data.page.query.next.tag, null)
+  t.is(response.data && response.data.page.query.next.text, 'bare text')
+})
+
+test('nextAll', async t => {
+  const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong>bare text<span>bap</span></div></body></html>`
+  const query = `{
+    page(source: "${html}") {
+      query(selector: "strong") {
+        nextAll {
+          tag
+          text
+        }
+      }
+    }
+  }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.deepEqual(response.data && response.data.page.query.nextAll, [
+    { tag: null, text: 'bare text' },
+    { tag: 'SPAN', text: 'bap' },
+  ])
+})
+
+test('previous', async t => {
+  const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong><p>boom</p><span>bap</span></div></body></html>`
+  const query = `{
+    page(source: "${html}") {
+      query(selector: "span") {
+        previous {
+          text
+        }
+      }
+    }
+  }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.is(response.data && response.data.page.query.previous.text, 'boom')
+})
+
+test('previousAll', async t => {
+  const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong>bare text<span>bap</span></div></body></html>`
+  const query = `{
+    page(source: "${html}") {
+      query(selector: "span") {
+        previousAll {
+          tag
+          text
+        }
+      }
+    }
+  }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.deepEqual(response.data && response.data.page.query.previousAll, [
+    { tag: 'STRONG', text: 'bad' },
+    { tag: null, text: 'bare text' },
   ])
 })

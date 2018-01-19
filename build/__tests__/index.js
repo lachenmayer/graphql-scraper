@@ -159,20 +159,213 @@ ava_1.default('attr with selector', (t) => __awaiter(this, void 0, void 0, funct
     t.false('errors' in response);
     t.is(response.data && response.data.page.attr, 'selectme');
 }));
+ava_1.default('has', (t) => __awaiter(this, void 0, void 0, function* () {
+    const html = `<html><head><title>some title</title></head><body><div class=\\"one\\"><strong>one</strong></div><div class=\\"two\\"><strong>two</strong></div></body></html>`;
+    const query = `{
+    page(source: "${html}") {
+      firstDiv: query(selector: "div") {
+        isStrong: has(selector: "strong")
+      }
+    }
+  }`;
+    const response = yield graphql_1.graphql(_1.default, query);
+    t.false('errors' in response);
+    t.true(response.data && response.data.page.firstDiv.isStrong);
+}));
+ava_1.default('has not', (t) => __awaiter(this, void 0, void 0, function* () {
+    const html = `<html><head><title>some title</title></head><body><div class=\\"one\\"><strong>one</strong></div><div class=\\"two\\"><strong>two</strong></div></body></html>`;
+    const query = `{
+    page(source: "${html}") {
+      firstDiv: query(selector: "div") {
+        isWeak: has(selector: "weak")
+      }
+    }
+  }`;
+    const response = yield graphql_1.graphql(_1.default, query);
+    t.false('errors' in response);
+    t.true(response.data && !response.data.page.firstDiv.isWeak);
+}));
 ava_1.default('query', (t) => __awaiter(this, void 0, void 0, function* () {
     const html = `<html><head><title>some title</title></head><body><div class=\\"one\\"><strong>one</strong></div><div class=\\"two\\"><strong>two</strong></div></body></html>`;
     const query = `{
     page(source: "${html}") {
-      query(selector: "div") {
+      firstDiv: query(selector: "div") {
         text
       }
     }
   }`;
     const response = yield graphql_1.graphql(_1.default, query);
     t.false('errors' in response);
-    t.deepEqual(response.data && response.data.page.query, [
+    t.deepEqual(response.data && response.data.page.firstDiv, { text: 'one' });
+}));
+ava_1.default('queryAll', (t) => __awaiter(this, void 0, void 0, function* () {
+    const html = `<html><head><title>some title</title></head><body><div class=\\"one\\"><strong>one</strong></div><div class=\\"two\\"><strong>two</strong></div></body></html>`;
+    const query = `{
+    page(source: "${html}") {
+      divs: queryAll(selector: "div") {
+        text
+      }
+    }
+  }`;
+    const response = yield graphql_1.graphql(_1.default, query);
+    t.false('errors' in response);
+    t.deepEqual(response.data && response.data.page.divs, [
         { text: 'one' },
         { text: 'two' },
+    ]);
+}));
+ava_1.default('children', (t) => __awaiter(this, void 0, void 0, function* () {
+    const html = `<html><head><title>some title</title></head><body><div class=\\"one\\"><strong>one</strong><strong>two</strong></div><div class=\\"two\\"><strong>two</strong><strong>three</strong></div></body></html>`;
+    const query = `{
+    page(source: "${html}") {
+      kids: queryAll(selector: "div") {
+        children {
+          text
+        }
+      }
+    }
+  }`;
+    const response = yield graphql_1.graphql(_1.default, query);
+    t.false('errors' in response);
+    t.deepEqual(response.data && response.data.page.kids, [
+        {
+            children: [{ text: 'one' }, { text: 'two' }],
+        },
+        {
+            children: [{ text: 'two' }, { text: 'three' }],
+        },
+    ]);
+}));
+ava_1.default('parent', (t) => __awaiter(this, void 0, void 0, function* () {
+    const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong></div></body></html>`;
+    const query = `{
+    page(source: "${html}") {
+      query(selector: "strong") {
+        parent {
+          attr(name: "class")
+        }
+      }
+    }
+  }`;
+    const response = yield graphql_1.graphql(_1.default, query);
+    t.false('errors' in response);
+    t.is(response.data && response.data.page.query.parent.attr, 'selectme');
+}));
+ava_1.default('siblings', (t) => __awaiter(this, void 0, void 0, function* () {
+    const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong><p>boom</p><span>bap</span></div></body></html>`;
+    const query = `{
+    page(source: "${html}") {
+      query(selector: "strong") {
+        siblings {
+          text
+        }
+      }
+    }
+  }`;
+    const response = yield graphql_1.graphql(_1.default, query);
+    t.false('errors' in response);
+    t.deepEqual(response.data && response.data.page.query.siblings, [
+        { text: 'bad' },
+        { text: 'boom' },
+        { text: 'bap' },
+    ]);
+}));
+ava_1.default('siblings of root is only html', (t) => __awaiter(this, void 0, void 0, function* () {
+    const html = `<!doctype html><html><head></head><body>nothing to see here</body></html>`;
+    const query = `{
+    page(source: "${html}") {
+      siblings {
+        tag
+      }
+    }
+  }`;
+    const response = yield graphql_1.graphql(_1.default, query);
+    t.false('errors' in response);
+    t.deepEqual(response.data && response.data.page.siblings, [{ tag: 'HTML' }]);
+}));
+ava_1.default('next', (t) => __awaiter(this, void 0, void 0, function* () {
+    const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong><p>boom</p><span>bap</span></div></body></html>`;
+    const query = `{
+    page(source: "${html}") {
+      query(selector: "strong") {
+        next {
+          text
+        }
+      }
+    }
+  }`;
+    const response = yield graphql_1.graphql(_1.default, query);
+    t.false('errors' in response);
+    t.is(response.data && response.data.page.query.next.text, 'boom');
+}));
+ava_1.default('next - bare text', (t) => __awaiter(this, void 0, void 0, function* () {
+    const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong>bare text<span>bap</span></div></body></html>`;
+    const query = `{
+    page(source: "${html}") {
+      query(selector: "strong") {
+        next {
+          tag
+          text
+        }
+      }
+    }
+  }`;
+    const response = yield graphql_1.graphql(_1.default, query);
+    t.false('errors' in response);
+    t.is(response.data && response.data.page.query.next.tag, null);
+    t.is(response.data && response.data.page.query.next.text, 'bare text');
+}));
+ava_1.default('nextAll', (t) => __awaiter(this, void 0, void 0, function* () {
+    const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong>bare text<span>bap</span></div></body></html>`;
+    const query = `{
+    page(source: "${html}") {
+      query(selector: "strong") {
+        nextAll {
+          tag
+          text
+        }
+      }
+    }
+  }`;
+    const response = yield graphql_1.graphql(_1.default, query);
+    t.false('errors' in response);
+    t.deepEqual(response.data && response.data.page.query.nextAll, [
+        { tag: null, text: 'bare text' },
+        { tag: 'SPAN', text: 'bap' },
+    ]);
+}));
+ava_1.default('previous', (t) => __awaiter(this, void 0, void 0, function* () {
+    const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong><p>boom</p><span>bap</span></div></body></html>`;
+    const query = `{
+    page(source: "${html}") {
+      query(selector: "span") {
+        previous {
+          text
+        }
+      }
+    }
+  }`;
+    const response = yield graphql_1.graphql(_1.default, query);
+    t.false('errors' in response);
+    t.is(response.data && response.data.page.query.previous.text, 'boom');
+}));
+ava_1.default('previousAll', (t) => __awaiter(this, void 0, void 0, function* () {
+    const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong>bare text<span>bap</span></div></body></html>`;
+    const query = `{
+    page(source: "${html}") {
+      query(selector: "span") {
+        previousAll {
+          tag
+          text
+        }
+      }
+    }
+  }`;
+    const response = yield graphql_1.graphql(_1.default, query);
+    t.false('errors' in response);
+    t.deepEqual(response.data && response.data.page.query.previousAll, [
+        { tag: 'STRONG', text: 'bad' },
+        { tag: null, text: 'bare text' },
     ]);
 }));
 //# sourceMappingURL=index.js.map

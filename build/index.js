@@ -75,18 +75,94 @@ function sharedFields() {
                 return attribute.value;
             },
         },
+        has: {
+            type: scalars_1.GraphQLBoolean,
+            args: {
+                selector: { type: new graphql_1.GraphQLNonNull(scalars_1.GraphQLString) },
+            },
+            resolve({ self }, { selector }) {
+                return !!self.querySelector(selector);
+            },
+        },
         query: {
+            type: ElementType,
+            args: {
+                selector: { type: new graphql_1.GraphQLNonNull(scalars_1.GraphQLString) },
+            },
+            resolve({ self }, { selector }) {
+                const newSelf = self.querySelector(selector);
+                return newSelf ? { self: newSelf } : null;
+            },
+        },
+        queryAll: {
             type: new graphql_1.GraphQLList(ElementType),
             args: {
                 selector: { type: new graphql_1.GraphQLNonNull(scalars_1.GraphQLString) },
             },
             resolve({ self }, { selector }) {
-                return Array.from(self.querySelectorAll(selector)).map(self => ({
-                    self,
-                }));
+                return toElements(self.querySelectorAll(selector));
+            },
+        },
+        children: {
+            type: new graphql_1.GraphQLList(ElementType),
+            resolve({ self }) {
+                return toElements(self.children);
+            },
+        },
+        parent: {
+            type: ElementType,
+            resolve({ self }) {
+                return self.parentElement ? { self: self.parentElement } : null;
+            },
+        },
+        siblings: {
+            type: new graphql_1.GraphQLList(ElementType),
+            resolve({ self }) {
+                const parent = self.parentElement;
+                if (parent == null)
+                    return [{ self }];
+                return toElements(parent.children);
+            },
+        },
+        next: {
+            type: ElementType,
+            resolve({ self }) {
+                return self.nextSibling ? { self: self.nextSibling } : null;
+            },
+        },
+        nextAll: {
+            type: new graphql_1.GraphQLList(ElementType),
+            resolve({ self }, { selector }) {
+                const siblings = [];
+                for (let next = self.nextSibling; next != null; next = next.nextSibling) {
+                    siblings.push({ self: next });
+                }
+                return siblings;
+            },
+        },
+        previous: {
+            type: ElementType,
+            resolve({ self }) {
+                return self.previousSibling ? { self: self.previousSibling } : null;
+            },
+        },
+        previousAll: {
+            type: new graphql_1.GraphQLList(ElementType),
+            resolve({ self }, { selector }) {
+                const siblings = [];
+                for (let previous = self.previousSibling; previous != null; previous = previous.previousSibling) {
+                    siblings.push({ self: previous });
+                }
+                siblings.reverse();
+                return siblings;
             },
         },
     };
+}
+function toElements(nodeListOrCollection) {
+    return Array.from(nodeListOrCollection).map(self => ({
+        self,
+    }));
 }
 const NodeType = new graphql_1.GraphQLInterfaceType({
     name: 'Node',
