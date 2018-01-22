@@ -7,7 +7,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
 const scalars_1 = require("graphql/type/scalars");
 const graphql_1 = require("graphql");
 const schema_1 = require("graphql/type/schema");
@@ -190,7 +189,7 @@ const ElementType = new graphql_1.GraphQLObjectType({
             },
         } })),
 });
-exports.default = new schema_1.GraphQLSchema({
+const schema = new schema_1.GraphQLSchema({
     query: new graphql_1.GraphQLObjectType({
         name: 'Query',
         fields: () => ({
@@ -216,4 +215,6 @@ exports.default = new schema_1.GraphQLSchema({
         }),
     }),
 });
+module.exports.default = schema;
+module.exports = schema;
 //# sourceMappingURL=index.js.map

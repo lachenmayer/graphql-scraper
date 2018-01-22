@@ -214,7 +214,7 @@ const ElementType = new GraphQLObjectType({
   }),
 })
 
-export default new GraphQLSchema({
+const schema = new GraphQLSchema({
   query: new GraphQLObjectType({
     name: 'Query',
     fields: () => ({
@@ -240,3 +240,6 @@ export default new GraphQLSchema({
     }),
   }),
 })
+
+export = schema
+module.exports.default = schema

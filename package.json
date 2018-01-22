@@ -16,8 +16,11 @@
     "typescript": "^2.6.2"
   },
   "dependencies": {
+    "chalk": "^2.3.0",
+    "get-stdin": "^5.0.1",
     "graphql": "^0.12.3",
     "isomorphic-fetch": "^2.2.1",
-    "jsdom": "^11.5.1"
+    "jsdom": "^11.5.1",
+    "minimist": "^1.2.0"
   }
 }
