@@ -4,6 +4,7 @@ import {
   GraphQLInterfaceTypeConfig,
 } from 'graphql'
 import { JSDOM } from 'jsdom'
+import { resolve } from 'url'
 
 function makeSchema(graphql: any) {
   const {
@@ -15,7 +16,7 @@ function makeSchema(graphql: any) {
     GraphQLInterfaceType,
     GraphQLList,
   } = graphql
-  function sharedFields(): GraphQLFieldConfigMap<{ self: Element }, any> {
+  function sharedFields(): GraphQLFieldConfigMap<Element, any> {
     return {
       content: {
         type: GraphQLString,
@@ -23,8 +24,8 @@ function makeSchema(graphql: any) {
         args: {
           selector: { type: GraphQLString },
         },
-        resolve({ self }, { selector }) {
-          const element = selector ? self.querySelector(selector) : self
+        resolve(element, { selector }) {
+          element = selector ? element.querySelector(selector) : element
           return element && element.innerHTML
         },
       },
@@ -34,8 +35,8 @@ function makeSchema(graphql: any) {
         args: {
           selector: { type: GraphQLString },
         },
-        resolve({ self }, { selector }) {
-          const element = selector ? self.querySelector(selector) : self
+        resolve(element, { selector }) {
+          element = selector ? element.querySelector(selector) : element
           return element && element.outerHTML
         },
       },
@@ -45,8 +46,8 @@ function makeSchema(graphql: any) {
         args: {
           selector: { type: GraphQLString },
         },
-        resolve({ self }, { selector }) {
-          const element = selector ? self.querySelector(selector) : self
+        resolve(element, { selector }) {
+          element = selector ? element.querySelector(selector) : element
           return element && element.textContent
         },
       },
@@ -56,8 +57,8 @@ function makeSchema(graphql: any) {
         args: {
           selector: { type: GraphQLString },
         },
-        resolve({ self }, { selector }) {
-          const element = selector ? self.querySelector(selector) : self
+        resolve(element, { selector }) {
+          element = selector ? element.querySelector(selector) : element
           return element && element.tagName
         },
       },
@@ -68,8 +69,8 @@ function makeSchema(graphql: any) {
           selector: { type: GraphQLString },
           name: { type: new GraphQLNonNull(GraphQLString) },
         },
-        resolve({ self }, { selector, name }) {
-          const element = selector ? self.querySelector(selector) : self
+        resolve(element, { selector, name }) {
+          element = selector ? element.querySelector(selector) : element
           if (element == null) return null
           const attribute = element.attributes[name]
           if (attribute == null) return null
@@ -81,8 +82,8 @@ function makeSchema(graphql: any) {
         args: {
           selector: { type: new GraphQLNonNull(GraphQLString) },
         },
-        resolve({ self }, { selector }) {
-          return !!self.querySelector(selector)
+        resolve(element, { selector }) {
+          return !!element.querySelector(selector)
         },
       },
       query: {
@@ -90,9 +91,8 @@ function makeSchema(graphql: any) {
         args: {
           selector: { type: new GraphQLNonNull(GraphQLString) },
         },
-        resolve({ self }, { selector }) {
-          const newSelf = self.querySelector(selector)
-          return newSelf ? { self: newSelf } : null
+        resolve(element, { selector }) {
+          return element.querySelector(selector)
         },
       },
       queryAll: {
@@ -100,66 +100,66 @@ function makeSchema(graphql: any) {
         args: {
           selector: { type: new GraphQLNonNull(GraphQLString) },
         },
-        resolve({ self }, { selector }) {
-          return toElements(self.querySelectorAll(selector))
+        resolve(element, { selector }) {
+          return Array.from(element.querySelectorAll(selector))
         },
       },
       children: {
         type: new GraphQLList(ElementType),
-        resolve({ self }) {
-          return toElements(self.children)
+        resolve(element) {
+          return Array.from(element.children)
         },
       },
       parent: {
         type: ElementType,
-        resolve({ self }) {
-          return self.parentElement ? { self: self.parentElement } : null
+        resolve(element) {
+          return element.parentElement
         },
       },
       siblings: {
         type: new GraphQLList(ElementType),
-        resolve({ self }) {
-          const parent = self.parentElement
-          if (parent == null) return [{ self }]
-          return toElements(parent.children)
+        resolve(element) {
+          const parent = element.parentElement
+          if (parent == null) return [element]
+          return Array.from(parent.children)
         },
       },
       next: {
         type: ElementType,
-        resolve({ self }) {
-          return self.nextSibling ? { self: self.nextSibling } : null
+        resolve(element) {
+          return element.nextSibling
         },
       },
       nextAll: {
         type: new GraphQLList(ElementType),
-        resolve({ self }, { selector }) {
+        resolve(element, { selector }) {
           const siblings = []
           for (
-            let next = self.nextSibling;
+            let next = element.nextSibling;
             next != null;
             next = next.nextSibling
           ) {
-            siblings.push({ self: next })
+            siblings.push(next)
           }
           return siblings
         },
       },
       previous: {
         type: ElementType,
-        resolve({ self }) {
-          return self.previousSibling ? { self: self.previousSibling } : null
+        resolve(element) {
+          return element.previousSibling
         },
       },
       previousAll: {
         type: new GraphQLList(ElementType),
-        resolve({ self }, { selector }) {
+        resolve(element, { selector }) {
           const siblings = []
           for (
-            let previous = self.previousSibling;
+            let previous = element.previousSibling;
             previous != null;
             previous = previous.previousSibling
           ) {
-            siblings.push({ self: previous })
+            siblings.push(previous)
           }
           siblings.reverse()
           return siblings
@@ -168,16 +168,8 @@ function makeSchema(graphql: any) {
     }
   }
 
-  function toElements(
-    nodeListOrCollection: any
-  ): Array<{ self: any /* Element */ }> {
-    return Array.from(nodeListOrCollection).map(self => ({
-      self,
-    }))
-  }
-
   const NodeType = new GraphQLInterfaceType(<GraphQLInterfaceTypeConfig<
-    { self: Element },
+    Element,
     any
   >>{
     name: 'Node',
@@ -185,7 +177,7 @@ function makeSchema(graphql: any) {
   })
 
   const DocumentType = new GraphQLObjectType(<GraphQLObjectTypeConfig<
-    { window: Window; self: Element },
+    Element,
     any
   >>{
     name: 'Document',
@@ -195,14 +187,17 @@ function makeSchema(graphql: any) {
       title: {
         type: GraphQLString,
         description: 'The page title',
-        resolve({ window }) {
-          return window.document.title
+        resolve(element) {
+          return element.ownerDocument.title
         },
       },
     }),
   })
 
-  const ElementType = new GraphQLObjectType({
+  const ElementType = new GraphQLObjectType(<GraphQLObjectTypeConfig<
+    Element,
+    any
+  >>{
     name: 'Element',
     interfaces: [NodeType],
     fields: () => ({
@@ -211,8 +206,14 @@ function makeSchema(graphql: any) {
         type: DocumentType,
         description:
           'If the element is a link, visit the page linked to in the href attribute.',
-        resolve() {
-          throw new Error('TODO')
+        async resolve(element) {
+          const href = element.attributes['href']
+          if (href == null) {
+            return null
+          }
+          const url = resolve(element.ownerDocument.location.href, href.value) // handle relative links.
+          const dom = await JSDOM.fromURL(url)
+          return dom.window.document.documentElement
         },
       },
     }),
@@ -236,10 +237,7 @@ function makeSchema(graphql: any) {
             }
             const dom =
               url != null ? await JSDOM.fromURL(url) : new JSDOM(source)
-            return {
-              window: dom.window,
-              self: dom.window.document.documentElement,
-            }
+            return dom.window.document.documentElement
           },
         },
       }),

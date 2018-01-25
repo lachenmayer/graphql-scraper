@@ -24,16 +24,16 @@ test('title', async t => {
   t.is(response.data && response.data.page.title, 'some title')
 })
 
-test.cb('from url', t => {
-  createServer((req, res) => {
+test('from url', async t => {
+  const server = createServer((req, res) => {
     res.end(`<html><head><title>some title</title></head><body></body></html>`)
-  }).listen(13337, async () => {
-    const query = `{ page(url: "http://localhost:13337/") { title } }`
-    const response = await graphql(schema, query)
-    t.false('errors' in response)
-    t.is(response.data && response.data.page.title, 'some title')
-    t.end()
   })
+  server.listen(13337)
+  const query = `{ page(url: "http://localhost:13337/") { title } }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.is(response.data && response.data.page.title, 'some title')
+  server.close()
 })
 
 test('content', async t => {
@@ -398,4 +398,34 @@ test('previousAll', async t => {
     { tag: 'STRONG', text: 'bad' },
     { tag: null, text: 'bare text' },
   ])
+})
+
+test('visit', async t => {
+  const server = createServer((req, res) => {
+    if (req.url === '/link') {
+      res.end(
+        `<html><body><strong>we managed to visit the link!</strong></body></html>`
+      )
+    } else {
+      res.end(`<html><body><a href="/link">come on in</a></body></html>`)
+    }
+  })
+  server.listen(13339)
+
+  const query = `{
+      page(url: "http://localhost:13339/") {
+        link: query(selector: "a") {
+          visit {
+            text(selector: "strong")
+          }
+        }
+      }
+    }`
+  const response = await graphql(schema, query)
+  t.false('errors' in response)
+  t.is(
+    response.data && response.data.page.link.visit.text,
+    'we managed to visit the link!'
+  )
+  server.close()
 })

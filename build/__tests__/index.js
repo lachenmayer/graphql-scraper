@@ -26,17 +26,17 @@ ava_1.default('title', (t) => __awaiter(this, void 0, void 0, function* () {
     t.false('errors' in response);
     t.is(response.data && response.data.page.title, 'some title');
 }));
-ava_1.default.cb('from url', t => {
-    http_1.createServer((req, res) => {
+ava_1.default('from url', (t) => __awaiter(this, void 0, void 0, function* () {
+    const server = http_1.createServer((req, res) => {
         res.end(`<html><head><title>some title</title></head><body></body></html>`);
-    }).listen(13337, () => __awaiter(this, void 0, void 0, function* () {
-        const query = `{ page(url: "http://localhost:13337/") { title } }`;
-        const response = yield graphql(schema, query);
-        t.false('errors' in response);
-        t.is(response.data && response.data.page.title, 'some title');
-        t.end();
-    }));
-});
+    });
+    server.listen(13337);
+    const query = `{ page(url: "http://localhost:13337/") { title } }`;
+    const response = yield graphql(schema, query);
+    t.false('errors' in response);
+    t.is(response.data && response.data.page.title, 'some title');
+    server.close();
+}));
 ava_1.default('content', (t) => __awaiter(this, void 0, void 0, function* () {
     const html = `<html><head><title>some title</title></head><body>some body</body></html>`;
     const query = `{ page(source: "${html}") { content } }`;
@@ -369,5 +369,29 @@ ava_1.default('previousAll', (t) => __awaiter(this, void 0, void 0, function* ()
         { tag: 'STRONG', text: 'bad' },
         { tag: null, text: 'bare text' },
     ]);
+}));
+ava_1.default('visit', (t) => __awaiter(this, void 0, void 0, function* () {
+    const server = http_1.createServer((req, res) => {
+        if (req.url === '/link') {
+            res.end(`<html><body><strong>we managed to visit the link!</strong></body></html>`);
+        }
+        else {
+            res.end(`<html><body><a href="/link">come on in</a></body></html>`);
+        }
+    });
+    server.listen(13339);
+    const query = `{
+      page(url: "http://localhost:13339/") {
+        link: query(selector: "a") {
+          visit {
+            text(selector: "strong")
+          }
+        }
+      }
+    }`;
+    const response = yield graphql(schema, query);
+    t.false('errors' in response);
+    t.is(response.data && response.data.page.link.visit.text, 'we managed to visit the link!');
+    server.close();
 }));
 //# sourceMappingURL=index.js.map
