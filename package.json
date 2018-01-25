@@ -1,7 +1,7 @@
 {
   "name": "graphql-scraper",
   "version": "1.0.0",
-  "description": "scrape websites using graphql",
+  "description": "Extract structured data from the web using GraphQL.",
   "main": "build/index.js",
   "author": "harry lachenmayer <harrylachenmayer@gmail.com>",
   "license": "MIT",
