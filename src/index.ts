@@ -14,13 +14,16 @@ import { JSDOM } from 'jsdom'
 import { resolve } from 'url'
 
 function sharedFields(): GraphQLFieldConfigMap<Element, any> {
+  const selector = {
+    type: GraphQLString,
+    description:
+      'A [CSS selector](https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Selectors).',
+  }
   return {
     content: {
       type: GraphQLString,
       description: 'The HTML content of the subnodes',
-      args: {
-        selector: { type: GraphQLString },
-      },
+      args: { selector },
       resolve(element, { selector }) {
         element = selector ? element.querySelector(selector) : element
         return element && element.innerHTML
@@ -29,9 +32,7 @@ function sharedFields(): GraphQLFieldConfigMap<Element, any> {
     html: {
       type: GraphQLString,
       description: 'The HTML content of the selected DOM node',
-      args: {
-        selector: { type: GraphQLString },
-      },
+      args: { selector },
       resolve(element, { selector }) {
         element = selector ? element.querySelector(selector) : element
         return element && element.outerHTML
@@ -40,9 +41,7 @@ function sharedFields(): GraphQLFieldConfigMap<Element, any> {
     text: {
       type: GraphQLString,
       description: 'The text content of the selected DOM node',
-      args: {
-        selector: { type: GraphQLString },
-      },
+      args: { selector },
       resolve(element, { selector }) {
         element = selector ? element.querySelector(selector) : element
         return element && element.textContent
@@ -51,9 +50,7 @@ function sharedFields(): GraphQLFieldConfigMap<Element, any> {
     tag: {
       type: GraphQLString,
       description: 'The tag name of the selected DOM node',
-      args: {
-        selector: { type: GraphQLString },
-      },
+      args: { selector },
       resolve(element, { selector }) {
         element = selector ? element.querySelector(selector) : element
         return element && element.tagName
@@ -61,10 +58,14 @@ function sharedFields(): GraphQLFieldConfigMap<Element, any> {
     },
     attr: {
       type: GraphQLString,
-      description: 'The attribute with the given name of the node',
+      description:
+        'An attribute of the selected node (eg. `href`, `src`, etc.).',
       args: {
-        selector: { type: GraphQLString },
-        name: { type: new GraphQLNonNull(GraphQLString) },
+        selector,
+        name: {
+          type: new GraphQLNonNull(GraphQLString),
+          description: 'The name of the attribute',
+        },
       },
       resolve(element, { selector, name }) {
         element = selector ? element.querySelector(selector) : element
@@ -76,45 +77,48 @@ function sharedFields(): GraphQLFieldConfigMap<Element, any> {
     },
     has: {
       type: GraphQLBoolean,
-      args: {
-        selector: { type: new GraphQLNonNull(GraphQLString) },
-      },
+      description: 'Returns true if an element with the given selector exists.',
+      args: { selector },
       resolve(element, { selector }) {
         return !!element.querySelector(selector)
       },
     },
     query: {
       type: ElementType,
-      args: {
-        selector: { type: new GraphQLNonNull(GraphQLString) },
-      },
+      description:
+        'Equivalent to [Element.querySelector](https://developer.mozilla.org/en-US/docs/Web/API/Element/querySelector). The selectors of any nested queries will be scoped to the resulting element.',
+      args: { selector },
       resolve(element, { selector }) {
         return element.querySelector(selector)
       },
     },
     queryAll: {
       type: new GraphQLList(ElementType),
-      args: {
-        selector: { type: new GraphQLNonNull(GraphQLString) },
-      },
+      description:
+        'Equivalent to [Element.querySelectorAll](https://developer.mozilla.org/en-US/docs/Web/API/Element/querySelectorAll). The selectors of any nested queries will be scoped to the resulting elements.',
+      args: { selector },
       resolve(element, { selector }) {
         return Array.from(element.querySelectorAll(selector))
       },
     },
     children: {
       type: new GraphQLList(ElementType),
+      description: "An element's child elements.",
       resolve(element) {
         return Array.from(element.children)
       },
     },
     parent: {
       type: ElementType,
+      description: "An element's parent element.",
       resolve(element) {
         return element.parentElement
       },
     },
     siblings: {
       type: new GraphQLList(ElementType),
+      description:
+        "All elements which are at the same level in the tree as the current element, ie. the children of the current element's parent. Includes the current element.",
       resolve(element) {
         const parent = element.parentElement
         if (parent == null) return [element]
@@ -123,12 +127,15 @@ function sharedFields(): GraphQLFieldConfigMap<Element, any> {
     },
     next: {
       type: ElementType,
+      description:
+        "The current element's next sibling. Includes text nodes. Equivalent to [Node.nextSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling).",
       resolve(element) {
         return element.nextSibling
       },
     },
     nextAll: {
       type: new GraphQLList(ElementType),
+      description: "All of the current element's next siblings",
       resolve(element, { selector }) {
         const siblings = []
         for (
@@ -143,12 +150,15 @@ function sharedFields(): GraphQLFieldConfigMap<Element, any> {
     },
     previous: {
       type: ElementType,
+      description:
+        "The current element's previous sibling. Includes text nodes. Equivalent to [Node.previousSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling).",
       resolve(element) {
         return element.previousSibling
       },
     },
     previousAll: {
       type: new GraphQLList(ElementType),
+      description: "All of the current element's previous siblings",
       resolve(element, { selector }) {
         const siblings = []
         for (
@@ -170,6 +180,7 @@ const NodeType = new GraphQLInterfaceType(<GraphQLInterfaceTypeConfig<
   any
 >>{
   name: 'Node',
+  description: 'A DOM node (either an Element or a Document).',
   fields: sharedFields,
 })
 
@@ -178,6 +189,7 @@ const DocumentType = new GraphQLObjectType(<GraphQLObjectTypeConfig<
   any
 >>{
   name: 'Document',
+  description: 'A DOM document.',
   interfaces: [NodeType],
   fields: () => ({
     ...sharedFields(),
@@ -196,6 +208,7 @@ const ElementType = new GraphQLObjectType(<GraphQLObjectTypeConfig<
   any
 >>{
   name: 'Element',
+  description: 'A DOM element.',
   interfaces: [NodeType],
   fields: () => ({
     ...sharedFields(),
@@ -223,8 +236,15 @@ const schema = new GraphQLSchema({
       page: {
         type: DocumentType,
         args: {
-          url: { type: GraphQLString },
-          source: { type: GraphQLString },
+          url: {
+            type: GraphQLString,
+            description: 'A URL to fetch the HTML source from.',
+          },
+          source: {
+            type: GraphQLString,
+            description:
+              'A string containing HTML to be used as the source document.',
+          },
         },
         async resolve(_, { url, source }) {
           if (url == null && source == null) {

@@ -11,13 +11,15 @@ const graphql_1 = require("graphql");
 const jsdom_1 = require("jsdom");
 const url_1 = require("url");
 function sharedFields() {
+    const selector = {
+        type: graphql_1.GraphQLString,
+        description: 'A [CSS selector](https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Selectors).',
+    };
     return {
         content: {
             type: graphql_1.GraphQLString,
             description: 'The HTML content of the subnodes',
-            args: {
-                selector: { type: graphql_1.GraphQLString },
-            },
+            args: { selector },
             resolve(element, { selector }) {
                 element = selector ? element.querySelector(selector) : element;
                 return element && element.innerHTML;
@@ -26,9 +28,7 @@ function sharedFields() {
         html: {
             type: graphql_1.GraphQLString,
             description: 'The HTML content of the selected DOM node',
-            args: {
-                selector: { type: graphql_1.GraphQLString },
-            },
+            args: { selector },
             resolve(element, { selector }) {
                 element = selector ? element.querySelector(selector) : element;
                 return element && element.outerHTML;
@@ -37,9 +37,7 @@ function sharedFields() {
         text: {
             type: graphql_1.GraphQLString,
             description: 'The text content of the selected DOM node',
-            args: {
-                selector: { type: graphql_1.GraphQLString },
-            },
+            args: { selector },
             resolve(element, { selector }) {
                 element = selector ? element.querySelector(selector) : element;
                 return element && element.textContent;
@@ -48,9 +46,7 @@ function sharedFields() {
         tag: {
             type: graphql_1.GraphQLString,
             description: 'The tag name of the selected DOM node',
-            args: {
-                selector: { type: graphql_1.GraphQLString },
-            },
+            args: { selector },
             resolve(element, { selector }) {
                 element = selector ? element.querySelector(selector) : element;
                 return element && element.tagName;
@@ -58,10 +54,13 @@ function sharedFields() {
         },
         attr: {
             type: graphql_1.GraphQLString,
-            description: 'The attribute with the given name of the node',
+            description: 'An attribute of the selected node (eg. `href`, `src`, etc.).',
             args: {
-                selector: { type: graphql_1.GraphQLString },
-                name: { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) },
+                selector,
+                name: {
+                    type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString),
+                    description: 'The name of the attribute',
+                },
             },
             resolve(element, { selector, name }) {
                 element = selector ? element.querySelector(selector) : element;
@@ -75,45 +74,45 @@ function sharedFields() {
         },
         has: {
             type: graphql_1.GraphQLBoolean,
-            args: {
-                selector: { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) },
-            },
+            description: 'Returns true if an element with the given selector exists.',
+            args: { selector },
             resolve(element, { selector }) {
                 return !!element.querySelector(selector);
             },
         },
         query: {
             type: ElementType,
-            args: {
-                selector: { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) },
-            },
+            description: 'Equivalent to [Element.querySelector](https://developer.mozilla.org/en-US/docs/Web/API/Element/querySelector). The selectors of any nested queries will be scoped to the resulting element.',
+            args: { selector },
             resolve(element, { selector }) {
                 return element.querySelector(selector);
             },
         },
         queryAll: {
             type: new graphql_1.GraphQLList(ElementType),
-            args: {
-                selector: { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) },
-            },
+            description: 'Equivalent to [Element.querySelectorAll](https://developer.mozilla.org/en-US/docs/Web/API/Element/querySelectorAll). The selectors of any nested queries will be scoped to the resulting elements.',
+            args: { selector },
             resolve(element, { selector }) {
                 return Array.from(element.querySelectorAll(selector));
             },
         },
         children: {
             type: new graphql_1.GraphQLList(ElementType),
+            description: "An element's child elements.",
             resolve(element) {
                 return Array.from(element.children);
             },
         },
         parent: {
             type: ElementType,
+            description: "An element's parent element.",
             resolve(element) {
                 return element.parentElement;
             },
         },
         siblings: {
             type: new graphql_1.GraphQLList(ElementType),
+            description: "All elements which are at the same level in the tree as the current element, ie. the children of the current element's parent. Includes the current element.",
             resolve(element) {
                 const parent = element.parentElement;
                 if (parent == null)
@@ -123,12 +122,14 @@ function sharedFields() {
         },
         next: {
             type: ElementType,
+            description: "The current element's next sibling. Includes text nodes. Equivalent to [Node.nextSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling).",
             resolve(element) {
                 return element.nextSibling;
             },
         },
         nextAll: {
             type: new graphql_1.GraphQLList(ElementType),
+            description: "All of the current element's next siblings",
             resolve(element, { selector }) {
                 const siblings = [];
                 for (let next = element.nextSibling; next != null; next = next.nextSibling) {
@@ -139,12 +140,14 @@ function sharedFields() {
         },
         previous: {
             type: ElementType,
+            description: "The current element's previous sibling. Includes text nodes. Equivalent to [Node.previousSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling).",
             resolve(element) {
                 return element.previousSibling;
             },
         },
         previousAll: {
             type: new graphql_1.GraphQLList(ElementType),
+            description: "All of the current element's previous siblings",
             resolve(element, { selector }) {
                 const siblings = [];
                 for (let previous = element.previousSibling; previous != null; previous = previous.previousSibling) {
@@ -158,10 +161,12 @@ function sharedFields() {
 }
 const NodeType = new graphql_1.GraphQLInterfaceType({
     name: 'Node',
+    description: 'A DOM node (either an Element or a Document).',
     fields: sharedFields,
 });
 const DocumentType = new graphql_1.GraphQLObjectType({
     name: 'Document',
+    description: 'A DOM document.',
     interfaces: [NodeType],
     fields: () => (Object.assign({}, sharedFields(), { title: {
             type: graphql_1.GraphQLString,
@@ -173,6 +178,7 @@ const DocumentType = new graphql_1.GraphQLObjectType({
 });
 const ElementType = new graphql_1.GraphQLObjectType({
     name: 'Element',
+    description: 'A DOM element.',
     interfaces: [NodeType],
     fields: () => (Object.assign({}, sharedFields(), { visit: {
             type: DocumentType,
@@ -197,8 +203,14 @@ const schema = new graphql_1.GraphQLSchema({
             page: {
                 type: DocumentType,
                 args: {
-                    url: { type: graphql_1.GraphQLString },
-                    source: { type: graphql_1.GraphQLString },
+                    url: {
+                        type: graphql_1.GraphQLString,
+                        description: 'A URL to fetch the HTML source from.',
+                    },
+                    source: {
+                        type: graphql_1.GraphQLString,
+                        description: 'A string containing HTML to be used as the source document.',
+                    },
                 },
                 resolve(_, { url, source }) {
                     return __awaiter(this, void 0, void 0, function* () {
