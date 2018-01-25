@@ -7,6 +7,10 @@ import makeSchema from '../'
 
 const schema = makeSchema(GraphQL)
 
+test('es6 import works', t => {
+  t.is(makeSchema, makeSchema['default'])
+})
+
 test('no args throws errors', async t => {
   const query = `{ page { title } }`
   const response = await graphql(schema, query)

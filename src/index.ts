@@ -248,5 +248,5 @@ function makeSchema(graphql: any) {
 }
 
 // Make this importable with ES6
-makeSchema.default = makeSchema
+makeSchema['default'] = makeSchema
 export = makeSchema

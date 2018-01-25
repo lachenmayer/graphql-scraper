@@ -14,6 +14,9 @@ const { graphql } = GraphQL;
 const http_1 = require("http");
 const _1 = require("../");
 const schema = _1.default(GraphQL);
+ava_1.default('es6 import works', t => {
+    t.is(_1.default, _1.default['default']);
+});
 ava_1.default('no args throws errors', (t) => __awaiter(this, void 0, void 0, function* () {
     const query = `{ page { title } }`;
     const response = yield graphql(schema, query);

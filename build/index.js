@@ -217,6 +217,6 @@ function makeSchema(graphql) {
     return schema;
 }
 // Make this importable with ES6
-makeSchema.default = makeSchema;
+makeSchema['default'] = makeSchema;
 module.exports = makeSchema;
 //# sourceMappingURL=index.js.map
