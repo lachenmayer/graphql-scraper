@@ -5,7 +5,7 @@ const colors = require('chalk')
 const fs = require('fs')
 const getStdin = require('get-stdin')
 const GraphQL = require('graphql')
-const { graphql } = graphql
+const { graphql } = GraphQL
 const util = require('util')
 
 const makeSchema = require('./build')
@@ -26,6 +26,11 @@ Options:
 Example:
 > graphql-scraper query.graphql --json --url="https://news.ycombinator.com/" --page=2
 `
+
+function die() {
+  console.log(usage)
+  process.exit(1)
+}
 
 const formatters = {
   json: function(result) {
@@ -61,11 +66,13 @@ async function main() {
   let query
   if (argv._.length === 0) {
     query = await getStdin()
+    if (query === '') {
+      die()
+    }
   } else if (argv._.length === 1) {
     query = fs.readFileSync(argv._[0], { encoding: 'utf8' })
   } else {
-    console.log(usage)
-    process.exit(1)
+    die()
   }
   delete argv._
 
