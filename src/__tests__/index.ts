@@ -1,8 +1,11 @@
 import test from 'ava'
-import { graphql } from 'graphql'
+import * as GraphQL from 'graphql'
+const { graphql } = GraphQL
 import { createServer } from 'http'
 
-import schema from '../'
+import makeSchema from '../'
+
+const schema = makeSchema(GraphQL)
 
 test('no args throws errors', async t => {
   const query = `{ page { title } }`

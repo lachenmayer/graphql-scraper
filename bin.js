@@ -4,10 +4,13 @@ const argv = require('minimist')(process.argv.slice(2))
 const colors = require('chalk')
 const fs = require('fs')
 const getStdin = require('get-stdin')
-const { graphql } = require('graphql')
+const GraphQL = require('graphql')
+const { graphql } = graphql
 const util = require('util')
 
-const schema = require('./build')
+const makeSchema = require('./build')
+const schema = makeSchema(GraphQL)
+
 const package = require('./package.json')
 const usage = `graphql-scraper v${package.version}
 
