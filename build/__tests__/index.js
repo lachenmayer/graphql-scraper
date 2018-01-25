@@ -13,19 +13,19 @@ const GraphQL = require("graphql");
 const { graphql } = GraphQL;
 const http_1 = require("http");
 const _1 = require("../");
-const schema = _1.default(GraphQL);
-ava_1.default('es6 import works', t => {
-    t.is(_1.default, _1.default['default']);
+const requiredSchema = require('../');
+ava_1.default('es6 & commonjs imports work', t => {
+    t.is(_1.default, requiredSchema);
 });
 ava_1.default('no args throws errors', (t) => __awaiter(this, void 0, void 0, function* () {
     const query = `{ page { title } }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.is(response && response.errors && response.errors[0].message, 'You need to provide either a URL or a HTML source string.');
 }));
 ava_1.default('title', (t) => __awaiter(this, void 0, void 0, function* () {
     const html = `<html><head><title>some title</title></head><body></body></html>`;
     const query = `{ page(source: "${html}") { title } }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.title, 'some title');
 }));
@@ -35,7 +35,7 @@ ava_1.default('from url', (t) => __awaiter(this, void 0, void 0, function* () {
     });
     server.listen(13337);
     const query = `{ page(url: "http://localhost:13337/") { title } }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.title, 'some title');
     server.close();
@@ -43,7 +43,7 @@ ava_1.default('from url', (t) => __awaiter(this, void 0, void 0, function* () {
 ava_1.default('content', (t) => __awaiter(this, void 0, void 0, function* () {
     const html = `<html><head><title>some title</title></head><body>some body</body></html>`;
     const query = `{ page(source: "${html}") { content } }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.content, '<head><title>some title</title></head><body>some body</body>');
 }));
@@ -54,7 +54,7 @@ ava_1.default('content with selector', (t) => __awaiter(this, void 0, void 0, fu
       content(selector: ".selectme")
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.content, '<strong>bad</strong>');
 }));
@@ -65,14 +65,14 @@ ava_1.default('not existing selector', (t) => __awaiter(this, void 0, void 0, fu
       content(selector: ".selectmenot")
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.content, null);
 }));
 ava_1.default('html', (t) => __awaiter(this, void 0, void 0, function* () {
     const html = `<html><head><title>some title</title></head><body>some body</body></html>`;
     const query = `{ page(source: "${html}") { html } }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.html, html);
 }));
@@ -83,7 +83,7 @@ ava_1.default('html with selector', (t) => __awaiter(this, void 0, void 0, funct
       html(selector: ".selectme")
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.html, '<div class="selectme"><strong>bad</strong></div>');
 }));
@@ -94,7 +94,7 @@ ava_1.default('text', (t) => __awaiter(this, void 0, void 0, function* () {
       text
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.text, 'some titlebad');
 }));
@@ -105,7 +105,7 @@ ava_1.default('text with selector', (t) => __awaiter(this, void 0, void 0, funct
       text(selector: ".selectme")
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.text, 'bad');
 }));
@@ -116,7 +116,7 @@ ava_1.default('tag', (t) => __awaiter(this, void 0, void 0, function* () {
       tag
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.tag, 'HTML');
 }));
@@ -127,7 +127,7 @@ ava_1.default('tag with selector', (t) => __awaiter(this, void 0, void 0, functi
       tag(selector: ".selectme")
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.tag, 'DIV');
 }));
@@ -138,7 +138,7 @@ ava_1.default('attr', (t) => __awaiter(this, void 0, void 0, function* () {
       attr(name: "style")
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.attr, 'background: red;');
 }));
@@ -149,7 +149,7 @@ ava_1.default('wacky attr', (t) => __awaiter(this, void 0, void 0, function* () 
       attr(name: "asdf")
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.attr, null);
 }));
@@ -160,7 +160,7 @@ ava_1.default('attr with selector', (t) => __awaiter(this, void 0, void 0, funct
       attr(selector: ".selectme", name: "class")
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.attr, 'selectme');
 }));
@@ -173,7 +173,7 @@ ava_1.default('has', (t) => __awaiter(this, void 0, void 0, function* () {
       }
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.true(response.data && response.data.page.firstDiv.isStrong);
 }));
@@ -186,7 +186,7 @@ ava_1.default('has not', (t) => __awaiter(this, void 0, void 0, function* () {
       }
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.true(response.data && !response.data.page.firstDiv.isWeak);
 }));
@@ -199,7 +199,7 @@ ava_1.default('query', (t) => __awaiter(this, void 0, void 0, function* () {
       }
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.deepEqual(response.data && response.data.page.firstDiv, { text: 'one' });
 }));
@@ -212,7 +212,7 @@ ava_1.default('queryAll', (t) => __awaiter(this, void 0, void 0, function* () {
       }
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.deepEqual(response.data && response.data.page.divs, [
         { text: 'one' },
@@ -230,7 +230,7 @@ ava_1.default('children', (t) => __awaiter(this, void 0, void 0, function* () {
       }
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.deepEqual(response.data && response.data.page.kids, [
         {
@@ -252,7 +252,7 @@ ava_1.default('parent', (t) => __awaiter(this, void 0, void 0, function* () {
       }
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.query.parent.attr, 'selectme');
 }));
@@ -267,7 +267,7 @@ ava_1.default('siblings', (t) => __awaiter(this, void 0, void 0, function* () {
       }
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.deepEqual(response.data && response.data.page.query.siblings, [
         { text: 'bad' },
@@ -284,7 +284,7 @@ ava_1.default('siblings of root is only html', (t) => __awaiter(this, void 0, vo
       }
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.deepEqual(response.data && response.data.page.siblings, [{ tag: 'HTML' }]);
 }));
@@ -299,7 +299,7 @@ ava_1.default('next', (t) => __awaiter(this, void 0, void 0, function* () {
       }
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.query.next.text, 'boom');
 }));
@@ -315,7 +315,7 @@ ava_1.default('next - bare text', (t) => __awaiter(this, void 0, void 0, functio
       }
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.query.next.tag, null);
     t.is(response.data && response.data.page.query.next.text, 'bare text');
@@ -332,7 +332,7 @@ ava_1.default('nextAll', (t) => __awaiter(this, void 0, void 0, function* () {
       }
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.deepEqual(response.data && response.data.page.query.nextAll, [
         { tag: null, text: 'bare text' },
@@ -350,7 +350,7 @@ ava_1.default('previous', (t) => __awaiter(this, void 0, void 0, function* () {
       }
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.query.previous.text, 'boom');
 }));
@@ -366,7 +366,7 @@ ava_1.default('previousAll', (t) => __awaiter(this, void 0, void 0, function* ()
       }
     }
   }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.deepEqual(response.data && response.data.page.query.previousAll, [
         { tag: 'STRONG', text: 'bad' },
@@ -392,7 +392,7 @@ ava_1.default('visit', (t) => __awaiter(this, void 0, void 0, function* () {
         }
       }
     }`;
-    const response = yield graphql(schema, query);
+    const response = yield graphql(_1.default, query);
     t.false('errors' in response);
     t.is(response.data && response.data.page.link.visit.text, 'we managed to visit the link!');
     server.close();

@@ -3,12 +3,11 @@ import * as GraphQL from 'graphql'
 const { graphql } = GraphQL
 import { createServer } from 'http'
 
-import makeSchema from '../'
+import schema from '../'
+const requiredSchema = require('../')
 
-const schema = makeSchema(GraphQL)
-
-test('es6 import works', t => {
-  t.is(makeSchema, makeSchema['default'])
+test('es6 & commonjs imports work', t => {
+  t.is(schema, requiredSchema)
 })
 
 test('no args throws errors', async t => {

@@ -8,8 +8,7 @@ const GraphQL = require('graphql')
 const { graphql } = GraphQL
 const util = require('util')
 
-const makeSchema = require('./build')
-const schema = makeSchema(GraphQL)
+const schema = require('./build')
 
 const package = require('./package.json')
 const usage = `graphql-scraper v${package.version}
