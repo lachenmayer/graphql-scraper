@@ -6,7 +6,7 @@
 
 `graphql-scraper` is a command-line tool and reusable GraphQL schema which lets you easily extract data from HTML.
 
-# Install
+## Install
 
 ```
 npm install -g graphql-scraper
@@ -60,7 +60,7 @@ graphql-scraper query.graphql --page="https://news.ycombinator.com/"
 
 ## The schema
 
-You can check out an [auto-generated schema description here](docs/schema.md), but I recommend spinning up a [graphql-scraper-web](https://github.com/lachenmayer/graphql-scraper-web) instance and exploring the types interactively.
+You can check out an [auto-generated schema description here](doc/schema.md), but I recommend spinning up a [graphql-scraper-web](https://github.com/lachenmayer/graphql-scraper-web) instance and exploring the types interactively.
 
 ## Re-using the schema in your own projects
 
