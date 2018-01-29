@@ -6,7 +6,7 @@
 
 `graphql-scraper` is a command-line tool and reusable GraphQL schema which lets you easily extract data from HTML.
 
-[**Check out a live demo here.**](https://graphqlbin.com/W6nkfX). You can easily spin up your own by using [`graphql-scraper-server`](https://github.com/lachenmayer/graphql-scraper-server).
+[**Check out a live demo here.**](https://graphqlbin.com/W6nkfX) You can easily spin up your own by using [`graphql-scraper-server`](https://github.com/lachenmayer/graphql-scraper-server).
 
 ## Install
 
