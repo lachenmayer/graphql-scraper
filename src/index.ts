@@ -108,6 +108,13 @@ function sharedFields(): GraphQLFieldConfigMap<Element, any> {
         return Array.from(element.children)
       },
     },
+    childNodes: {
+      type: new GraphQLList(ElementType),
+      description: "An element's child nodes. Includes text nodes.",
+      resolve(element) {
+        return Array.from(element.childNodes)
+      }
+    },
     parent: {
       type: ElementType,
       description: "An element's parent element.",

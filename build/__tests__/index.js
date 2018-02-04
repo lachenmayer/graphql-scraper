@@ -241,6 +241,28 @@ ava_1.default('children', (t) => __awaiter(this, void 0, void 0, function* () {
         },
     ]);
 }));
+ava_1.default('childNodes', (t) => __awaiter(this, void 0, void 0, function* () {
+    const html = `<html><head><title>some title</title></head><body><div class=\\"one\\">one<strong>two</strong></div><div class=\\"two\\"><strong>two</strong>amazing<strong>three</strong></div></body></html>`;
+    const query = `{
+    page(source: "${html}") {
+      kids: queryAll(selector: "div") {
+        childNodes {
+          text
+        }
+      }
+    }
+  }`;
+    const response = yield graphql(_1.default, query);
+    t.false('errors' in response);
+    t.deepEqual(response.data && response.data.page.kids, [
+        {
+            childNodes: [{ text: 'one' }, { text: 'two' }],
+        },
+        {
+            childNodes: [{ text: 'two' }, { text: 'amazing' }, { text: 'three' }],
+        },
+    ]);
+}));
 ava_1.default('parent', (t) => __awaiter(this, void 0, void 0, function* () {
     const html = `<html><head><title>some title</title></head><body><div class=\\"selectme\\"><strong>bad</strong></div></body></html>`;
     const query = `{

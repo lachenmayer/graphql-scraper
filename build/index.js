@@ -103,6 +103,13 @@ function sharedFields() {
                 return Array.from(element.children);
             },
         },
+        childNodes: {
+            type: new graphql_1.GraphQLList(ElementType),
+            description: "An element's child nodes. Includes text nodes.",
+            resolve(element) {
+                return Array.from(element.childNodes);
+            }
+        },
         parent: {
             type: ElementType,
             description: "An element's parent element.",
