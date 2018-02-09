@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- `graphql` was incorrectly listed as a dev dependency.
+
 ## 1.2.0
 
 - Fixed CLI.
