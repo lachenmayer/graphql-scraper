@@ -8,15 +8,16 @@
 
 [**Check out a live demo here.**](https://graphqlbin.com/W6nkfX) You can easily spin up your own by using [`graphql-scraper-server`](https://github.com/lachenmayer/graphql-scraper-server).
 
-## Install
-
-```
-npm install -g graphql-scraper
-```
-
 ## The command-line tool
 
 ```
+npx graphql-scraper <query-file>
+```
+
+or
+
+```
+npm install -g graphql-scraper
 graphql-scraper <query-file>
 ```
 
@@ -28,7 +29,6 @@ If `query-file` is not given, reads the query from stdin.
 
 - `--json` Returns the result in JSON format, for use in other tools.
 - `--help` Prints a help string.
-
 
 ### Variables
 
@@ -62,7 +62,7 @@ graphql-scraper query.graphql --page="https://news.ycombinator.com/"
 
 ## The schema
 
-You can check out an [auto-generated schema description here](doc/schema.md), but I recommend spinning up a [graphql-scraper-server](https://github.com/lachenmayer/graphql-scraper-server) instance and exploring the types interactively. You can also play around with the schema in the [live demo](https://graphqlbin.com/W6nkfX).
+You can check out an [auto-generated schema description here](doc/schema.md), but I recommend trying out the [graphql-scraper-server](https://github.com/lachenmayer/graphql-scraper-server) example and exploring the types interactively. You can also play around with the schema in the [live demo](https://graphqlbin.com/W6nkfX).
 
 ## Re-using the schema in your own projects
 
